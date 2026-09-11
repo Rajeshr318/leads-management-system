@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Manager - LMS Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for local client-side Excel reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- AUTHENTICATION MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100">
+            <div class="flex items-center justify-center mb-3">
+                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 via-indigo-500 to-violet-500 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/20 ring-2 ring-white/10">
+                    M
+                </div>
+            </div>
+            <h2 class="text-xl font-bold text-center text-slate-900 mb-1 tracking-tight">LMS Portal Access</h2>
+            <p class="text-xs text-center text-slate-500 mb-5">Sign in as Admin or Employee (e.g. John Doe)</p>
+
+            <div class="flex border-b border-slate-200 mb-5 text-xs font-semibold">
+                <button id="signInTab" onclick="switchAuthTab('signin')" class="flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none">
+                    Sign In
+                </button>
+                <button id="signUpTab" onclick="switchAuthTab('signup')" class="flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none">
+                    Sign Up
+                </button>
+            </div>
+
+            <!-- SIGN IN FORM -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Username / Name</label>
+                    <input type="text" id="username" required placeholder="admin or John Doe" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-xs transition shadow-md shadow-blue-500/20 active:scale-95">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- SIGN UP FORM -->
+            <form id="signUpForm" onsubmit="handleSignUp(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Full Name</label>
+                    <input type="text" id="signupName" required placeholder="John Doe" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Username</label>
+                    <input type="text" id="signupUsername" required placeholder="johndoe" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Password</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Role</label>
+                    <select id="signupRole" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition">
+                        <option value="employee">Employee</option>
+                        <option value="manager">Manager</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-xs transition shadow-md shadow-blue-500/20 active:scale-95">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTAINER -->
+    <div id="app" class="flex flex-col md:flex-row h-screen w-full hidden overflow-hidden">
+        
+        <!-- MOBILE OVERLAY BACKDROP -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden"></div>
+
+        <!-- LEFT SIDEBAR NAVIGATION -->
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-20 bg-[#0F172A] text-slate-400 flex flex-col justify-between items-center py-5 flex-shrink-0 z-40 border-r border-slate-800 transition-transform duration-300 transform -translate-x-full md:translate-x-0">
+            <div class="flex flex-col items-center gap-7 w-full">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 via-indigo-500 to-violet-500 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/20 ring-2 ring-white/10 hover:scale-105 transition duration-200">
+                    M
+                </div>
+                <nav class="flex flex-col items-center gap-3 w-full px-3">
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="menu" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="search" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="building-2" class="w-5 h-5"></i></a>
+                    
+                    <!-- LEAD MANAGER VIEW TAB -->
+                    <a href="#" onclick="switchView('leads')" id="navLeadsBtn" class="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/30 transition duration-150"><i data-lucide="user-check" class="w-5 h-5"></i></a>
+                    
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="calendar" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="megaphone" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150"><i data-lucide="pie-chart" class="w-5 h-5"></i></a>
+                    
+                    <!-- ROUTINGHUB AUTOMATION TAB (ADMIN ONLY) -->
+                    <a href="#" onclick="switchView('automation')" id="navAutomationBtn" class="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150 hidden"><i data-lucide="cpu" class="w-5 h-5"></i></a>
+                </nav>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+                <button onclick="handleLogout()" title="Sign Out" class="p-2.5 text-slate-400 hover:text-red-400 hover:bg-slate-800/80 rounded-xl transition duration-150">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN BODY AREA -->
+        <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto md:overflow-hidden">
+
+            <!-- 1. LEAD MANAGER VIEW CONTAINER -->
+            <div id="leadsContainer" class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto md:overflow-hidden">
+                <!-- TOP HEADER BAR -->
+                <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-7 py-3 flex flex-wrap lg:flex-nowrap justify-between items-center gap-3 shadow-xs z-20">
+                    <div class="flex items-center gap-3 sm:gap-5 w-full sm:w-auto justify-between sm:justify-start">
+                        <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                            <i data-lucide="menu" class="w-5 h-5"></i>
+                        </button>
+                        <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Lead Manager</h1>
+                        
+                        <div class="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-5 text-xs font-semibold text-slate-500">
+                            <span>Role:</span>
+                            <span id="roleBadgeDisplay" class="px-2 py-0.5 rounded text-[10px] uppercase font-extrabold bg-blue-100 text-blue-700">Employee</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-end">
+                        
+                        <div class="relative flex-1 sm:flex-none">
+                            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+                            <input type="text" id="global-search" oninput="filterLeads()" placeholder="Search leads..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-100/70 border border-slate-200 rounded-lg w-full sm:w-40 lg:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- REFRESH LEADS BUTTON -->
+                        <button onclick="refreshLeadAssignments()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer" title="Refresh and apply Round Robin automation">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Refresh Leads</span>
+                        </button>
+
+                        <!-- CLIENT-SIDE LOCAL IMPORT BUTTON -->
+                        <label for="excelFileInput" class="cursor-pointer bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 sm:py-2 rounded-lg font-semibold flex items-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span class="hidden sm:inline">Import</span>
+                        </label>
+                        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleLocalExcelImport(event)">
+
+                        <div id="userBadge" class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xs font-bold flex items-center justify-center ring-2 ring-slate-100 shadow-2xs">
+                            E
+                        </div>
+
+                        <button onclick="handleLogout()" class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 transition">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                            <span class="hidden md:inline">Logout</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- FILTER CONTROL PANEL -->
+                <div class="bg-white border-b border-slate-200/80 px-4 sm:px-7 py-3.5 shadow-2xs z-10">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-end">
+                        <div class="flex flex-col text-[11px] text-slate-500 font-semibold gap-1">
+                            <label>Lead Stage</label>
+                            <select id="filter-stage" onchange="filterLeads()" class="border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700 bg-slate-50/50 focus:outline-none focus:border-blue-500 w-full">
+                                <option value="all">All Stages</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col text-[11px] text-slate-500 font-semibold gap-1" id="ownerFilterContainer">
+                            <label>Lead Owner / Teams</label>
+                            <select id="filter-owner" onchange="filterLeads()" class="border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700 bg-slate-50/50 focus:outline-none focus:border-blue-500 w-full">
+                                <option value="all">All Owners</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col text-[11px] text-slate-500 font-semibold gap-1">
+                            <label>Campaign Source</label>
+                            <select id="filter-campaign" onchange="filterLeads()" class="border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700 bg-slate-50/50 focus:outline-none focus:border-blue-500 w-full">
+                                <option value="all">All Campaigns</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2">
+                            <button id="reset-filters" onclick="resetFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-md font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE QUICK FILTER BUTTONS BAR -->
+                <div class="bg-slate-50/70 border-b border-slate-200 px-4 sm:px-7 py-3 flex items-center gap-2 overflow-x-auto custom-scrollbar text-xs">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap">Filter Stage:</span>
+                    <div id="stageButtonsBar" class="flex items-center gap-2 flex-wrap">
+                        <!-- Buttons dynamically populated by JS -->
+                    </div>
+                </div>
+
+                <!-- DYNAMIC LEADS TABLE AREA -->
+                <div class="flex-1 overflow-auto custom-scrollbar p-3 sm:p-6">
+                    <div class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-x-auto min-h-[350px]">
+                        <table class="w-full min-w-[900px] text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-700 text-xs font-bold border-b border-slate-200 uppercase tracking-wider">
+                                    <th class="px-4 py-3.5 text-center w-10">#</th>
+                                    <th class="px-4 py-3.5">Registered Name</th>
+                                    <th class="px-4 py-3.5">Lead Owner</th>
+                                    <th class="px-4 py-3.5">WhatsApp Number</th>
+                                    <th class="px-4 py-3.5">Campaign</th>
+                                    <th class="px-4 py-3.5">Registration Date</th>
+                                    <th class="px-4 py-3.5">Student Email</th>
+                                    <th class="px-4 py-3.5 text-center">Stage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTableBody" class="divide-y divide-slate-100 text-xs text-slate-700 font-normal">
+                                <!-- Dynamic Content Rendered Here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TABLE FOOTER -->
+                <footer class="bg-white border-t border-slate-200/80 px-4 sm:px-7 py-3 flex justify-between items-center text-xs text-slate-500">
+                    <div>
+                        Showing <span id="showing-count" class="font-bold text-slate-900">0</span> of <span id="total-count" class="font-bold text-slate-900">0</span> leads
+                    </div>
+                </footer>
+            </div>
+
+            <!-- 2. ROUTINGHUB AUTOMATION VIEW (ADMIN ONLY) -->
+            <div id="automationView" class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto custom-scrollbar p-6 hidden bg-[#F8FAFC]">
+                <div class="max-w-6xl w-full mx-auto space-y-6 pb-12">
+                    
+                    <!-- PAGE HEADER -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">ROUTINGHUB</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Manage automated lead assignment workflows and team distribution.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-200">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Automation Status: Active
+                            </div>
+                            <button onclick="openConfigModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-1.5">
+                                <i data-lucide="settings" class="w-3.5 h-3.5"></i> Configure Automation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 1: ROUND ROBIN AUTOMATION OVERVIEW -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-wrap justify-between items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-900">Round Robin Lead Assignment</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700">🟢 Active</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Automatically assign new leads to the next available team member using the Round Robin method.</p>
+                            <div class="flex items-center gap-4 pt-2 text-xs font-semibold text-slate-600">
+                                <span>⚡ Trigger: <strong class="text-slate-800">When New Lead Created</strong></span>
+                                <span>•</span>
+                                <span>🔄 Method: <strong class="text-slate-800">Round Robin</strong></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-700">Automation Master Switch</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="masterAutomationToggle" checked onchange="toggleMasterAutomation(this)" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: AUTOMATION FLOW VISUALIZATION -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Automation Workflow Pipeline</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-center">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">1. New Lead Created</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="power" class="w-5 h-5 text-blue-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">2. Check Status</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">3. Active Members</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="repeat" class="w-5 h-5 text-blue-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">4. Round Robin Queue</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">5. Assign Lead</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center space-y-1">
+                                <i data-lucide="bell" class="w-5 h-5 text-blue-600"></i>
+                                <span class="text-[11px] font-bold text-slate-800">6. Notify & Save</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: TEAM DISTRIBUTION TABLE -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Team Distribution & Queue Status</h3>
+                            <span class="text-xs text-slate-400 font-medium">Real-time workload allocation</span>
+                        </div>
+                        <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3.5 text-center w-12">#</th>
+                                        <th class="p-3.5">Team Member</th>
+                                        <th class="p-3.5">Availability Status</th>
+                                        <th class="p-3.5">Total Assigned Leads</th>
+                                        <th class="p-3.5">Queue Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teamDistributionTableBody" class="divide-y divide-slate-100 text-slate-700 font-medium">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- SECTION 4: AUTOMATION RULES -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Automation Rules</h3>
+                            <div class="space-y-3 text-xs">
+                                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                    <span class="font-semibold text-slate-600">Trigger Event</span>
+                                    <select class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none">
+                                        <option>When New Lead Is Created</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                    <span class="font-semibold text-slate-600">Assignment Method</span>
+                                    <select class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none">
+                                        <option>Round Robin</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                    <span class="font-semibold text-slate-600">Skip Inactive Members</span>
+                                    <input type="checkbox" checked class="w-4 h-4 text-blue-600 rounded">
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                    <span class="font-semibold text-slate-600">Max Leads Per Owner</span>
+                                    <select class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none">
+                                        <option>No Limit</option>
+                                        <option>50 Leads</option>
+                                        <option>100 Leads</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="font-semibold text-slate-600">Notification After Assignment</span>
+                                    <input type="checkbox" checked class="w-4 h-4 text-blue-600 rounded">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 5: TEAM MANAGEMENT -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Team Member Management</h3>
+                                <button onclick="addTeamMemberPrompt()" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Member
+                                </button>
+                            </div>
+                            <div id="teamMemberListContainer" class="space-y-2.5">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 6: AUTOMATION ACTIVITY & SECTION 7: ACTION BUTTONS -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Activity Feed -->
+                        <div class="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Recent Automation Activity</h3>
+                                <button onclick="viewFullActivity()" class="text-xs font-semibold text-blue-600 hover:underline">View Full Activity</button>
+                            </div>
+                            <div id="automationActivityFeed" class="space-y-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Action Control Panel -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between space-y-3">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Quick Actions</h3>
+                            <div class="space-y-2.5">
+                                <button onclick="openConfigModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                    <i data-lucide="settings" class="w-3.5 h-3.5"></i> Configure Automation
+                                </button>
+                                <button onclick="switchView('automation')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                    <i data-lucide="users" class="w-3.5 h-3.5"></i> Manage Team
+                                </button>
+                                <button onclick="viewFullActivity()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                    <i data-lucide="scroll-text" class="w-3.5 h-3.5"></i> View Activity Log
+                                </button>
+                                <button onclick="testAutomationSimulation()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                    <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i> Test Automation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CONFIGURATION MODAL -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Configure Automation Engine
+                </h3>
+                <button onclick="closeModal('configModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Queue Reset Interval</label>
+                    <select class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-medium">
+                        <option>Never (Continuous Round Robin)</option>
+                        <option>Daily Reset</option>
+                        <option>Weekly Reset</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Assignment Fallback Member</label>
+                    <select class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-medium">
+                        <option>John Doe (Default Senior)</option>
+                        <option>Alex Rivera</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Webhook Notification URL</label>
+                    <input type="text" value="https://lms-portal.internal/api/webhook/notify" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-700">
+                </div>
+                <button onclick="saveConfiguration()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md transition">
+                    Save Configuration Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMAIL TEMPLATE MODAL -->
+    <div id="emailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 border border-slate-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
+                    <i data-lucide="mail" class="w-4 h-4"></i> Compose Student Email
+                </div>
+                <button onclick="closeModal('emailModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Student Email</label>
+                    <input type="text" id="emailRecipient" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-700">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Select Email Template</label>
+                    <select id="emailTemplateSelect" onchange="applyEmailTemplate()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium">
+                        <option value="assign">Account Activation & Follow-Up</option>
+                        <option value="update">Request Status Update</option>
+                        <option value="followup">Initial Greeting</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Subject</label>
+                    <input type="text" id="emailSubject" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Message Body</label>
+                    <textarea id="emailBody" rows="5" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"></textarea>
+                </div>
+                <button onclick="launchGmail()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-md shadow-blue-500/20">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Open in Gmail Compose
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHATSAPP TEMPLATE MODAL -->
+    <div id="whatsappModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 border border-slate-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <div class="flex items-center gap-2 text-emerald-600 font-bold text-sm">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Send WhatsApp Message
+                </div>
+                <button onclick="closeModal('whatsappModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">WhatsApp Number</label>
+                    <input type="text" id="waPhone" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-700">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Ready Text Template</label>
+                    <select id="waTemplateSelect" onchange="applyWATemplate()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium">
+                        <option value="assign">New Lead Activation Notice</option>
+                        <option value="update">Quick Progress Check</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Message Preview</label>
+                    <textarea id="waMessageBody" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></textarea>
+                </div>
+                <button onclick="launchWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20">
+                    <i data-lucide="send" class="w-4 h-4"></i> Send on WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT & LOGIC -->
+    <script>
+        let currentUser = null;
+        let leadsData = [];
+        let activeLeadContext = null;
+        const availableStages = ["New", "Contacted", "Qualified", "In Progress", "Negotiation", "Closed Won", "Closed Lost"];
+        
+        let teamMembers = [
+            { id: 1, name: "John Doe", active: true, status: "Active" },
+            { id: 2, name: "Alex Rivera", active: true, status: "Active" },
+            { id: 3, name: "Sam Taylor", active: true, status: "Active" }
+        ];
+
+        let roundRobinIndex = 0;
+        let automationActive = true;
+        let automationActivities = [
+            { text: 'Lead "Arjun Sharma" automatically assigned to John Doe', time: '2 minutes ago' },
+            { text: 'Lead "Priya Patel" automatically assigned to Alex Rivera', time: '10 minutes ago' },
+            { text: 'Lead "Rohan Mehta" automatically assigned to Sam Taylor', time: '18 minutes ago' }
+        ];
+
+        lucide.createIcons();
+
+        function escapeQuotes(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.toggle('hidden');
+        }
+
+        function switchView(view) {
+            const leadsContainer = document.getElementById('leadsContainer');
+            const automationView = document.getElementById('automationView');
+            const navLeadsBtn = document.getElementById('navLeadsBtn');
+            const navAutomationBtn = document.getElementById('navAutomationBtn');
+
+            if (view === 'automation') {
+                if (currentUser && currentUser.role !== 'manager') return;
+                leadsContainer.classList.add('hidden');
+                automationView.classList.remove('hidden');
+                renderAutomationPage();
+                navAutomationBtn.className = "p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/30 transition duration-150";
+                navLeadsBtn.className = "p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150";
+            } else {
+                automationView.classList.add('hidden');
+                leadsContainer.classList.remove('hidden');
+                navLeadsBtn.className = "p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/30 transition duration-150";
+                if (currentUser && currentUser.role === 'manager') {
+                    navAutomationBtn.className = "p-2.5 rounded-xl text-slate-400 hover:bg-slate-800/80 hover:text-slate-100 transition duration-150";
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('signInTab').className = tab === 'signin' ? "flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none" : "flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none";
+            document.getElementById('signUpTab').className = tab === 'signup' ? "flex-1 py-2 text-center text-blue-600 border-b-2 border-blue-600 focus:outline-none" : "flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none";
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'signin');
+            document.getElementById('signUpForm').classList.toggle('hidden', tab !== 'signup');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const lowerName = username.toLowerCase();
+            
+            let role = 'employee';
+            let matchedName = username;
+
+            if (lowerName === 'admin' || lowerName === 'manager') {
+                role = 'manager';
+                matchedName = 'Admin Manager';
+            } else {
+                const foundMember = teamMembers.find(m => m.name.toLowerCase() === lowerName);
+                if (foundMember) {
+                    matchedName = foundMember.name;
+                }
+            }
+
+            loginUser({ name: matchedName, role: role });
+        }
+
+        function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value.trim() || "New User";
+            const role = document.getElementById('signupRole').value;
+            loginUser({ name, role });
+        }
+
+        function loginUser(user) {
+            currentUser = user;
+            const initials = user.name.split(" ").map(n => n[0]).join("").toUpperCase();
+            document.getElementById('userBadge').innerText = initials || 'U';
+            
+            const displayRole = user.role === 'manager' ? 'admin' : 'employee';
+            document.getElementById('roleBadgeDisplay').innerText = displayRole;
+
+            const navAutomationBtn = document.getElementById('navAutomationBtn');
+            const ownerFilterContainer = document.getElementById('ownerFilterContainer');
+
+            if (user.role === 'manager') {
+                navAutomationBtn.classList.remove('hidden');
+                ownerFilterContainer.classList.remove('hidden');
+            } else {
+                navAutomationBtn.classList.add('hidden');
+                ownerFilterContainer.classList.add('hidden');
+                switchView('leads');
+            }
+
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            
+            populateDynamicFilters();
+            renderStageButtons();
+            filterLeads();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function getNextActiveQueueMember() {
+            const activeMembers = teamMembers.filter(m => m.active);
+            if (activeMembers.length === 0) return null;
+
+            let attempts = 0;
+            while (attempts < teamMembers.length) {
+                const member = teamMembers[roundRobinIndex % teamMembers.length];
+                roundRobinIndex = (roundRobinIndex + 1) % teamMembers.length;
+                if (member.active) {
+                    return member;
+                }
+                attempts++;
+            }
+            return activeMembers[0];
+        }
+
+        function getNextQueueMemberPreview() {
+            const activeMembers = teamMembers.filter(m => m.active);
+            if (activeMembers.length === 0) return null;
+
+            let searchIdx = roundRobinIndex;
+            for (let i = 0; i < teamMembers.length; i++) {
+                const member = teamMembers[searchIdx % teamMembers.length];
+                if (member.active) {
+                    return member;
+                }
+                searchIdx++;
+            }
+            return activeMembers[0];
+        }
+
+        function handleLocalExcelImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+
+                    leadsData = [];
+
+                    jsonRows.forEach((row, index) => {
+                        let assignedOwner = "Unassigned";
+                        if (automationActive) {
+                            const nextMember = getNextActiveQueueMember();
+                            if (nextMember) assignedOwner = nextMember.name;
+                        }
+
+                        const newLead = {
+                            id: leadsData.length + 1,
+                            name: row['Registered Name'] || row['name'] || row['Name'] || `Lead ${leadsData.length + 1}`,
+                            owner: assignedOwner,
+                            phone: String(row['Mobile'] || row['phone'] || row['Phone'] || row['mobile'] || 'N/A'),
+                            campaign: row['Campaign'] || row['campaign'] || row['Source'] || 'Direct/Organic',
+                            date: String(row['Registration Date'] || row['date'] || row['Date'] || 'Today'),
+                            email: row['Email'] || row['email'] || 'N/A',
+                            stage: row['Stage'] || row['stage'] || 'New'
+                        };
+
+                        leadsData.push(newLead);
+
+                        if (automationActive && assignedOwner !== "Unassigned") {
+                            automationActivities.unshift({
+                                text: `Lead "${newLead.name}" automatically assigned to ${assignedOwner}`,
+                                time: 'Just now'
+                            });
+                        }
+                    });
+
+                    populateDynamicFilters();
+                    renderStageButtons();
+                    filterLeads();
+                    renderAutomationPage();
+
+                    if (automationActive) {
+                        alert(`Successfully imported ${jsonRows.length} leads and processed via Round Robin automation!`);
+                    } else {
+                        alert(`Successfully imported ${jsonRows.length} leads (Automation is OFF, leads marked as Unassigned).`);
+                    }
+                } catch (err) {
+                    alert("Failed to parse spreadsheet: " + err.message);
+                }
+                e.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // NEW: Refresh button logic to instantly apply Round Robin or re-evaluate assignments
+        function refreshLeadAssignments() {
+            if (leadsData.length === 0) {
+                alert("No leads loaded in memory. Please import an Excel spreadsheet first.");
+                return;
+            }
+
+            roundRobinIndex = 0; // Reset queue pointer
+            leadsData.forEach((lead) => {
+                let assignedOwner = "Unassigned";
+                if (automationActive) {
+                    const nextMember = getNextActiveQueueMember();
+                    if (nextMember) assignedOwner = nextMember.name;
+                }
+                lead.owner = assignedOwner;
+            });
+
+            populateDynamicFilters();
+            renderStageButtons();
+            filterLeads();
+            renderAutomationPage();
+            alert(automationActive ? "Leads refreshed and successfully distributed via Round Robin!" : "Leads refreshed (Automation is OFF, marked as Unassigned).");
+        }
+
+        function testAutomationSimulation() {
+            const nextMember = getNextQueueMemberPreview();
+            if (!nextMember) {
+                alert("No active team members available in Round Robin queue.");
+                return;
+            }
+            alert(`[Automation Test Simulator]\n\nNext lead in queue would be automatically assigned to: ${nextMember.name}\n\n(Queue index pointer preserved safely).`);
+        }
+
+        function toggleMasterAutomation(checkbox) {
+            automationActive = checkbox.checked;
+            alert(automationActive ? "Round Robin Automation Enabled." : "Round Robin Automation Disabled.");
+        }
+
+        function toggleTeamMemberActive(memberId) {
+            const member = teamMembers.find(m => m.id === memberId);
+            if (member) {
+                member.active = !member.active;
+                member.status = member.active ? "Active" : "Inactive";
+                renderAutomationPage();
+            }
+        }
+
+        function addTeamMemberPrompt() {
+            const name = prompt("Enter new team member full name:");
+            if (name && name.trim() !== "") {
+                teamMembers.push({
+                    id: teamMembers.length + 1,
+                    name: name.trim(),
+                    active: true,
+                    status: "Active"
+                });
+                renderAutomationPage();
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('configModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveConfiguration() {
+            alert("Automation configuration updated successfully!");
+            closeModal('configModal');
+        }
+
+        function viewFullActivity() {
+            const logText = automationActivities.map(a => `• ${a.text} (${a.time})`).join('\n');
+            alert("FULL AUTOMATION ACTIVITY LOG:\n\n" + logText);
+        }
+
+        function renderAutomationPage() {
+            const nextPreview = getNextQueueMemberPreview();
+
+            const distTbody = document.getElementById('teamDistributionTableBody');
+            if (distTbody) {
+                distTbody.innerHTML = '';
+                teamMembers.forEach((member, index) => {
+                    const assignedCount = leadsData.filter(l => l.owner.trim().toLowerCase() === member.name.trim().toLowerCase()).length;
+                    let statusBadge = member.active ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">🟢 Active / Available</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">🔴 Inactive (Skipped)</span>';
+                    let queueBadge = (!member.active) ? '—' : (nextPreview && nextPreview.id === member.id ? '<span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-400 text-slate-900 shadow-xs animate-pulse">⭐ NEXT</span>' : '—');
+
+                    const tr = document.createElement('tr');
+                    tr.className = member.active ? "hover:bg-slate-50 border-b border-slate-100" : "hover:bg-slate-50 border-b border-slate-100 opacity-60 bg-slate-50/50";
+                    tr.innerHTML = `
+                        <td class="p-3.5 text-center font-semibold text-slate-400">${index + 1}</td>
+                        <td class="p-3.5 font-bold text-slate-800">${member.name}</td>
+                        <td class="p-3.5">${statusBadge}</td>
+                        <td class="p-3.5 font-semibold text-blue-600">${assignedCount} Leads</td>
+                        <td class="p-3.5">${queueBadge}</td>
+                    `;
+                    distTbody.appendChild(tr);
+                });
+            }
+
+            const memberListContainer = document.getElementById('teamMemberListContainer');
+            if (memberListContainer) {
+                memberListContainer.innerHTML = '';
+                teamMembers.forEach(member => {
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" ${member.active ? 'checked' : ''} onchange="toggleTeamMemberActive(${member.id})" class="w-4 h-4 text-blue-600 rounded cursor-pointer">
+                            <span>${member.name}</span>
+                        </div>
+                        <span class="${member.active ? 'text-emerald-600 font-bold' : 'text-slate-400 font-bold'}">${member.status}</span>
+                    `;
+                    memberListContainer.appendChild(div);
+                });
+            }
+
+            const activityFeed = document.getElementById('automationActivityFeed');
+            if (activityFeed) {
+                activityFeed.innerHTML = '';
+                automationActivities.slice(0, 5).forEach(act => {
+                    const item = document.createElement('div');
+                    item.className = "p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs space-y-0.5";
+                    item.innerHTML = `
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${act.text}
+                        </div>
+                        <div class="text-[10px] text-slate-400 pl-3.5">${act.time}</div>
+                    `;
+                    activityFeed.appendChild(item);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        function renderTable(leads) {
+            const tbody = document.getElementById('leadsTableBody');
+            tbody.innerHTML = '';
+
+            if (!leads || leads.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-16 bg-white">
+                            <div class="max-w-xs mx-auto flex flex-col items-center p-4">
+                                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-3 ring-8 ring-blue-50/50">
+                                    <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-900 mb-1">No Leads Found</h3>
+                                <p class="text-xs text-slate-500 mb-5">${currentUser && currentUser.role !== 'manager' ? 'No leads have been assigned to your account yet.' : 'Click "Import" above to load your stored records.'}</p>
+                            </div>
+                        </td>
+                    </tr>`;
+                lucide.createIcons();
+                updateCounts(0);
+                return;
+            }
+
+            leads.forEach((lead, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-100";
+                
+                const currentStage = lead.stage || 'New';
+                const stageOptions = availableStages.map(s => 
+                    `<option value="${s}" ${s.toLowerCase() === currentStage.toLowerCase() ? 'selected' : ''}>${s}</option>`
+                ).join('');
+
+                const cleanPhone = (lead.phone || '').replace(/[^0-9+]/g, '');
+                const safeName = escapeQuotes(lead.name || '');
+                const safeEmail = escapeQuotes(lead.email || '');
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3.5 text-center font-semibold text-slate-400">${index + 1}</td>
+                    <td class="px-4 py-3.5 font-bold text-slate-800">${lead.name || 'N/A'}</td>
+                    <td class="px-4 py-3.5 font-semibold text-blue-600">${lead.owner || 'Unassigned'}</td>
+                    <td class="px-4 py-3.5">
+                        <button type="button" onclick="openWhatsAppModal('${safeName}', '${cleanPhone}')" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded border border-emerald-200 font-medium cursor-pointer">
+                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-600"></i> ${lead.phone || 'N/A'}
+                        </button>
+                    </td>
+                    <td class="px-4 py-3.5 text-slate-600">${lead.campaign || 'Direct/Organic'}</td>
+                    <td class="px-4 py-3.5 text-slate-600">${lead.date || 'N/A'}</td>
+                    <td class="px-4 py-3.5">
+                        <button type="button" onclick="openEmailModal('${safeEmail}', '${safeName}')" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer">
+                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> ${lead.email || 'N/A'}
+                        </button>
+                    </td>
+                    <td class="px-4 py-3.5 text-center">
+                        <select onchange="updateLeadStage(${lead.id}, this.value)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 focus:outline-none cursor-pointer">
+                            ${stageOptions}
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+            updateCounts(leads.length);
+        }
+
+        function updateLeadStage(leadId, newStage) {
+            const lead = leadsData.find(l => l.id === leadId);
+            if (lead) {
+                lead.stage = newStage;
+            }
+        }
+
+        function openEmailModal(email, leadName) {
+            document.getElementById('emailRecipient').value = email;
+            document.getElementById('emailSubject').value = `[Activation] Welcome ${leadName} to LMS Portal`;
+            document.getElementById('emailBody').value = `Hello ${leadName},\n\nYour student account has been successfully activated on our platform. Please log in to review your dashboard.\n\nBest regards,\nAdmissions Team`;
+            document.getElementById('emailModal').classList.remove('hidden');
+        }
+
+        function launchGmail() {
+            const to = encodeURIComponent(document.getElementById('emailRecipient').value);
+            const subject = encodeURIComponent(document.getElementById('emailSubject').value);
+            const body = encodeURIComponent(document.getElementById('emailBody').value);
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, '_blank');
+            closeModal('emailModal');
+        }
+
+        function openWhatsAppModal(leadName, phone) {
+            document.getElementById('waPhone').value = phone;
+            document.getElementById('waMessageBody').value = `Hi ${leadName}, your student registration with LMS Portal is active. Let us know if you have any questions!`;
+            document.getElementById('whatsappModal').classList.remove('hidden');
+        }
+
+        function launchWhatsApp() {
+            const phone = document.getElementById('waPhone').value.replace(/[^0-9]/g, '');
+            const text = encodeURIComponent(document.getElementById('waMessageBody').value);
+            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+            closeModal('whatsappModal');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function populateDynamicFilters() {
+            const stages = [...new Set(leadsData.map(l => l.stage).filter(Boolean))];
+            const owners = [...new Set(leadsData.map(l => l.owner).filter(Boolean))];
+            const campaigns = [...new Set(leadsData.map(l => l.campaign).filter(Boolean))];
+
+            document.getElementById('filter-stage').innerHTML = '<option value="all">All Stages</option>' + stages.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('filter-owner').innerHTML = '<option value="all">All Owners</option>' + owners.map(o => `<option value="${o}">${o}</option>`).join('');
+            document.getElementById('filter-campaign').innerHTML = '<option value="all">All Campaigns</option>' + campaigns.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function renderStageButtons() {
+            const stageContainer = document.getElementById('stageButtonsBar');
+            if (!stageContainer) return;
+
+            const selectedStage = document.getElementById('filter-stage').value;
+            const stagesToRender = ["all", ...availableStages];
+
+            let baseLeads = leadsData;
+            if (currentUser && currentUser.role !== 'manager') {
+                baseLeads = leadsData.filter(l => l.owner.trim().toLowerCase() === currentUser.name.trim().toLowerCase());
+            }
+
+            stageContainer.innerHTML = stagesToRender.map(stage => {
+                const count = stage === 'all' 
+                    ? baseLeads.length 
+                    : baseLeads.filter(l => (l.stage || '').toLowerCase() === stage.toLowerCase()).length;
+
+                const isSelected = selectedStage.toLowerCase() === stage.toLowerCase();
+                const activeClass = isSelected 
+                    ? "bg-blue-600 text-white font-bold shadow-xs" 
+                    : "bg-white text-slate-600 hover:bg-slate-100 font-medium border border-slate-200";
+
+                return `
+                    <button onclick="selectStageFilter('${stage}')" class="px-3 py-1 rounded-lg text-xs flex items-center gap-1.5 transition whitespace-nowrap cursor-pointer ${activeClass}">
+                        <span>${stage === 'all' ? 'All' : stage}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'} font-bold">${count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectStageFilter(stage) {
+            document.getElementById('filter-stage').value = stage;
+            filterLeads();
+        }
+
+        function filterLeads() {
+            const searchTerm = document.getElementById('global-search').value.toLowerCase();
+            const selectedStage = document.getElementById('filter-stage').value;
+            const selectedOwner = document.getElementById('filter-owner').value;
+            const selectedCampaign = document.getElementById('filter-campaign').value;
+
+            let baseLeads = leadsData;
+            if (currentUser && currentUser.role !== 'manager') {
+                baseLeads = leadsData.filter(l => l.owner.trim().toLowerCase() === currentUser.name.trim().toLowerCase());
+            }
+
+            const filtered = baseLeads.filter(lead => {
+                const matchesSearch = (lead.name && lead.name.toLowerCase().includes(searchTerm)) ||
+                                    (lead.phone && lead.phone.includes(searchTerm));
+
+                const matchesStage = (selectedStage === 'all') || (lead.stage && lead.stage.toLowerCase() === selectedStage.toLowerCase());
+                const matchesOwner = (selectedOwner === 'all') || (lead.owner === selectedOwner);
+                const matchesCampaign = (selectedCampaign === 'all') || (lead.campaign === selectedCampaign);
+
+                return matchesSearch && matchesStage && matchesOwner && matchesCampaign;
+            });
+
+            renderStageButtons();
+            renderTable(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('global-search').value = '';
+            document.getElementById('filter-stage').value = 'all';
+            document.getElementById('filter-owner').value = 'all';
+            document.getElementById('filter-campaign').value = 'all';
+            filterLeads();
+        }
+
+        function updateCounts(displayed) {
+            document.getElementById('showing-count').textContent = displayed;
+            let baseLeads = leadsData;
+            if (currentUser && currentUser.role !== 'manager') {
+                baseLeads = leadsData.filter(l => l.owner.trim().toLowerCase() === currentUser.name.trim().toLowerCase());
+            }
+            document.getElementById('total-count').textContent = baseLeads.length;
+        }
+    </script>
+</body>
+</html>
